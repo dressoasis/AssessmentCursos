@@ -1,0 +1,355 @@
+:root {
+  --primary: 250 80% 60%;
+  --primary-dark: 250 80% 50%;
+  --secondary: 180 70% 50%;
+  --background: 220 20% 97%;
+  --surface: 0 0% 100%;
+  --text: 220 20% 20%;
+  --text-light: 220 20% 50%;
+  --danger: 0 80% 60%;
+  --success: 150 80% 40%;
+  --border: 220 20% 90%;
+  --shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+  --radius: 0.75rem;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+  background-color: hsl(var(--background));
+  color: hsl(var(--text));
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+
+a {
+  color: hsl(var(--primary));
+  text-decoration: none;
+  font-weight: 500;
+  transition: color 0.2s;
+}
+
+a:hover {
+  color: hsl(var(--primary-dark));
+}
+
+button {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.95rem;
+  font-weight: 600;
+  padding: 0.6rem 1.2rem;
+  border-radius: var(--radius);
+  transition: all 0.2s;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* Layout */
+.courses-container,
+.course-details-container,
+.login-container {
+  max-width: 1000px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: hsl(var(--surface));
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+
+.login-container {
+  max-width: 400px;
+  margin-top: 5rem;
+}
+
+header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 2rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  color: hsl(var(--text));
+}
+
+h2 {
+  font-size: 1.5rem;
+  margin-bottom: 1rem;
+}
+
+/* Forms */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+label {
+  font-weight: 500;
+  color: hsl(var(--text-light));
+}
+
+input,
+select {
+  padding: 0.8rem;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  font-size: 1rem;
+  transition: border-color 0.2s;
+}
+
+input:focus,
+select:focus {
+  outline: none;
+  border-color: hsl(var(--primary));
+  box-shadow: 0 0 0 3px hsl(var(--primary) / 0.1);
+}
+
+/* Buttons */
+button[type="submit"] {
+  background: hsl(var(--primary));
+  color: white;
+}
+
+button[type="submit"]:hover {
+  background: hsl(var(--primary-dark));
+  transform: translateY(-1px);
+}
+
+.delete-btn,
+.action-btn.delete {
+  color: hsl(var(--danger));
+  background: hsl(var(--danger) / 0.1);
+}
+
+.delete-btn:hover,
+.action-btn.delete:hover {
+  background: hsl(var(--danger));
+  color: white;
+}
+
+.action-btn.publish {
+  color: hsl(var(--success));
+  background: hsl(var(--success) / 0.1);
+}
+
+.action-btn.publish:hover {
+  background: hsl(var(--success));
+  color: white;
+}
+
+.action-btn.unpublish {
+  color: hsl(var(--text-light));
+  background: hsl(var(--text-light) / 0.1);
+}
+
+.action-btn.unpublish:hover {
+  background: hsl(var(--text-light));
+  color: white;
+}
+
+.action-btn.edit,
+.edit-btn {
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+}
+
+.action-btn.edit:hover,
+.edit-btn:hover {
+  background: hsl(var(--primary));
+  color: white;
+}
+
+.cancel-btn {
+  color: hsl(var(--text-light));
+}
+
+.cancel-btn:hover {
+  background: hsl(var(--border));
+}
+
+/* Tables */
+table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 1rem;
+}
+
+th,
+td {
+  padding: 1rem;
+  text-align: left;
+  border-bottom: 1px solid hsl(var(--border));
+}
+
+th {
+  font-weight: 600;
+  color: hsl(var(--text-light));
+  text-transform: uppercase;
+  font-size: 0.85rem;
+  letter-spacing: 0.05em;
+}
+
+tr:last-child td {
+  border-bottom: none;
+}
+
+td button {
+  margin-right: 0.5rem;
+  padding: 0.4rem 0.8rem;
+  font-size: 0.85rem;
+}
+
+/* Controls */
+.controls {
+  display: flex;
+  gap: 2rem;
+  margin-bottom: 2rem;
+  flex-wrap: wrap;
+}
+
+.search-form,
+.create-form {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Lessons */
+.lesson-list {
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.lesson-list li {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 1rem;
+  background: white;
+  border: 1px solid hsl(var(--border));
+  border-radius: var(--radius);
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.lesson-list li:hover {
+  transform: translateX(4px);
+  box-shadow: 0 2px 4px hsl(var(--text) / 0.05);
+}
+
+.lesson-info {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.order {
+  font-weight: 700;
+  color: hsl(var(--primary));
+  background: hsl(var(--primary) / 0.1);
+  padding: 0.2rem 0.6rem;
+  border-radius: 0.5rem;
+  font-size: 0.9rem;
+}
+
+.title {
+  font-weight: 500;
+}
+
+.lesson-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.move-btn {
+  padding: 0.4rem 0.6rem;
+  color: hsl(var(--text-light));
+}
+
+.move-btn:hover:not(:disabled) {
+  background: hsl(var(--border));
+  color: hsl(var(--text));
+}
+
+/* Badges */
+.status-badge {
+  padding: 0.4rem 0.8rem;
+  border-radius: 2rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.status-badge.published {
+  background: hsl(var(--success) / 0.1);
+  color: hsl(var(--success));
+}
+
+.status-badge.draft {
+  background: hsl(var(--text-light) / 0.1);
+  color: hsl(var(--text-light));
+}
+
+/* Pagination */
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 2rem;
+}
+
+.pagination button {
+  background: white;
+  border: 1px solid hsl(var(--border));
+}
+
+.pagination button:hover:not(:disabled) {
+  border-color: hsl(var(--primary));
+  color: hsl(var(--primary));
+}
+
+/* Edit Forms */
+.edit-lesson-form {
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+  gap: 0.5rem;
+}
+
+.edit-lesson-form input {
+  flex: 1;
+}
+
+.back-link {
+  display: inline-block;
+  margin-bottom: 1rem;
+  color: hsl(var(--text-light));
+}
+
+.back-link:hover {
+  color: hsl(var(--primary));
+}

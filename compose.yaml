@@ -1,0 +1,7 @@
+﻿services:
+  assessmentcursos:
+    image: assessmentcursos
+    build:
+      context: .
+      dockerfile: AssessmentCursos/Dockerfile
+
