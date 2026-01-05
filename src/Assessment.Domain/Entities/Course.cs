@@ -28,6 +28,11 @@ public class Course
 
     public void Update(string title, CourseStatus status)
     {
+        if (status == CourseStatus.Published && !_lessons.Any(l => !l.IsDeleted))
+        {
+            throw new InvalidOperationException("Course must have at least one active lesson to be published.");
+        }
+
         Title = title;
         Status = status;
         UpdatedAt = DateTime.UtcNow;

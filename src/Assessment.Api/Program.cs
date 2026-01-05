@@ -1,6 +1,7 @@
 using Assessment.Application;
 using Assessment.Infrastructure;
 using Assessment.Api.Middleware;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.OpenApi.Models;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.IdentityModel.Tokens;
@@ -38,7 +39,11 @@ builder.Services
 
 builder.Services.AddAuthorization();
 
-builder.Services.AddControllers();
+builder.Services.AddControllers()
+    .AddJsonOptions(options =>
+    {
+        options.JsonSerializerOptions.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+    });
 builder.Services.AddEndpointsApiExplorer();
 
 // Swagger con JWT
@@ -96,6 +101,7 @@ using (var scope = app.Services.CreateScope())
     try
     {
         var context = services.GetRequiredService<Assessment.Infrastructure.Persistence.AppDbContext>();
+        await context.Database.MigrateAsync();
         var userManager = services.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<Assessment.Infrastructure.Identity.ApplicationUser>>();
         var roleManager = services.GetRequiredService<Microsoft.AspNetCore.Identity.RoleManager<Microsoft.AspNetCore.Identity.IdentityRole>>();
         await Assessment.Infrastructure.Persistence.DbInitializer.SeedAsync(context, userManager, roleManager);

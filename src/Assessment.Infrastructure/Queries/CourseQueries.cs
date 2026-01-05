@@ -26,8 +26,8 @@ public class CourseQueries : ICourseQueries
         if (!string.IsNullOrWhiteSpace(q))
             query = query.Where(c => c.Title.ToLower().Contains(q.ToLower()));
 
-        if (!string.IsNullOrWhiteSpace(status))
-            query = query.Where(c => c.Status.ToString() == status);
+        if (!string.IsNullOrWhiteSpace(status) && Enum.TryParse<Assessment.Domain.Enums.CourseStatus>(status, true, out var statusEnum))
+            query = query.Where(c => c.Status == statusEnum);
 
         return await query
             .OrderByDescending(c => c.UpdatedAt)

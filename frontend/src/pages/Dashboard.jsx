@@ -16,6 +16,7 @@ const Dashboard = () => {
     const [newCourseTitle, setNewCourseTitle] = useState('');
     const [editingCourse, setEditingCourse] = useState(null);
     const [editCourseTitle, setEditCourseTitle] = useState('');
+    const [editCourseStatus, setEditCourseStatus] = useState('');
     const [showCreateLessonModal, setShowCreateLessonModal] = useState(false);
     const [newLessonTitle, setNewLessonTitle] = useState('');
     const [editingLesson, setEditingLesson] = useState(null);
@@ -25,18 +26,20 @@ const Dashboard = () => {
     const fetchCourses = async () => {
         setLoading(true);
         try {
-            const response = await api.get('/courses', {
+            const response = await api.get('/courses/search', {
                 params: {
-                    search,
+                    q: search,
                     status: status === '' ? null : status,
                     page,
-                    pageSize: 50 // Increased for dashboard view
+                    pageSize: 50
                 }
             });
-            setCourses(response.data.items);
-            setTotalPages(response.data.totalPages);
+            // Backend returns a List<CourseSearchResultDto>, not a paginated object
+            setCourses(response.data || []);
+            // setTotalPages(response.data.totalPages); // Pagination not yet implemented in backend response
         } catch (error) {
             console.error('Error fetching courses:', error);
+            setCourses([]); // Ensure courses is always an array on error
         } finally {
             setLoading(false);
         }
@@ -82,16 +85,17 @@ const Dashboard = () => {
         try {
             await api.put(`/courses/${editingCourse.id}/update`, {
                 title: editCourseTitle,
-                status: editingCourse.status
+                status: editCourseStatus
             });
             setEditingCourse(null);
             setEditCourseTitle('');
+            setEditCourseStatus('');
             fetchCourses();
             if (selectedCourse?.id === editingCourse.id) {
-                setSelectedCourse(prev => ({ ...prev, title: editCourseTitle }));
+                setSelectedCourse(prev => ({ ...prev, title: editCourseTitle, status: editCourseStatus }));
             }
         } catch (error) {
-            alert('Error updating course');
+            alert('Error updating course: ' + (error.response?.data || error.message));
         }
     };
 
@@ -110,7 +114,7 @@ const Dashboard = () => {
         try {
             await api.patch(`/courses/${id}/publish`);
             fetchCourses();
-            if (selectedCourse?.id === id) setSelectedCourse(prev => ({ ...prev, status: 1 }));
+            if (selectedCourse?.id === id) setSelectedCourse(prev => ({ ...prev, status: 'Published' }));
         } catch (error) {
             alert('Error publishing course');
         }
@@ -120,7 +124,7 @@ const Dashboard = () => {
         try {
             await api.patch(`/courses/${id}/unpublish`);
             fetchCourses();
-            if (selectedCourse?.id === id) setSelectedCourse(prev => ({ ...prev, status: 0 }));
+            if (selectedCourse?.id === id) setSelectedCourse(prev => ({ ...prev, status: 'Draft' }));
         } catch (error) {
             alert('Error unpublishing course');
         }
@@ -241,8 +245,8 @@ const Dashboard = () => {
                                     onChange={(e) => setStatus(e.target.value)}
                                 >
                                     <option value="">All Statuses</option>
-                                    <option value="1">Published</option>
-                                    <option value="0">Draft</option>
+                                    <option value="Published">Published</option>
+                                    <option value="Draft">Draft</option>
                                 </select>
                             </div>
                         </div>
@@ -271,8 +275,8 @@ const Dashboard = () => {
                                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-3 mb-1">
-                                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${course.status === 1 ? 'bg-green-400/10 text-green-400 ring-green-400/20' : 'bg-yellow-400/10 text-yellow-400 ring-yellow-400/20'}`}>
-                                                {course.status === 1 ? 'Published' : 'Draft'}
+                                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${course.status === 'Published' ? 'bg-green-400/10 text-green-400 ring-green-400/20' : 'bg-yellow-400/10 text-yellow-400 ring-yellow-400/20'}`}>
+                                                {course.status}
                                             </span>
                                             <span className="text-xs text-text-secondary">ID: #{course.id.substring(0, 4)}</span>
                                         </div>
@@ -281,7 +285,12 @@ const Dashboard = () => {
                                     </div>
                                     <div className="flex items-center gap-2 shrink-0">
                                         <button
-                                            onClick={(e) => { e.stopPropagation(); setEditingCourse(course); setEditCourseTitle(course.title); }}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setEditingCourse(course);
+                                                setEditCourseTitle(course.title);
+                                                setEditCourseStatus(course.status);
+                                            }}
                                             className="size-9 rounded-lg bg-surface-dark border border-border-dark hover:bg-primary hover:text-white hover:border-primary text-text-secondary flex items-center justify-center transition-all"
                                             title="Edit Course"
                                         >
@@ -292,7 +301,7 @@ const Dashboard = () => {
                                                 <span className="material-symbols-outlined text-[20px]">more_vert</span>
                                             </button>
                                             <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-border-dark bg-[#1e2736] shadow-xl opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all z-10 p-1">
-                                                {course.status === 1 ? (
+                                                {course.status === 'Published' ? (
                                                     <button onClick={(e) => { e.stopPropagation(); handleUnpublishCourse(course.id); }} className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-text-secondary hover:bg-white/5 hover:text-white">
                                                         <span className="material-symbols-outlined text-[18px]">unpublished</span> Unpublish
                                                     </button>
@@ -405,13 +414,29 @@ const Dashboard = () => {
                     <div className="bg-surface-dark p-6 rounded-xl w-full max-w-md border border-border-dark">
                         <h3 className="text-xl font-bold text-white mb-4">Edit Course</h3>
                         <form onSubmit={handleUpdateCourse}>
-                            <input
-                                className="w-full bg-background-dark border border-border-dark rounded-lg p-3 text-white mb-4"
-                                placeholder="Course Title"
-                                value={editCourseTitle}
-                                onChange={(e) => setEditCourseTitle(e.target.value)}
-                                required
-                            />
+                            <div className="space-y-4 mb-4">
+                                <div>
+                                    <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Title</label>
+                                    <input
+                                        className="w-full bg-background-dark border border-border-dark rounded-lg p-3 text-white"
+                                        placeholder="Course Title"
+                                        value={editCourseTitle}
+                                        onChange={(e) => setEditCourseTitle(e.target.value)}
+                                        required
+                                    />
+                                </div>
+                                <div>
+                                    <label className="block text-xs font-bold text-text-secondary uppercase tracking-wider mb-2">Status</label>
+                                    <select
+                                        className="w-full bg-background-dark border border-border-dark rounded-lg p-3 text-white appearance-none cursor-pointer"
+                                        value={editCourseStatus}
+                                        onChange={(e) => setEditCourseStatus(e.target.value)}
+                                    >
+                                        <option value="Draft">Draft</option>
+                                        <option value="Published">Published</option>
+                                    </select>
+                                </div>
+                            </div>
                             <div className="flex justify-end gap-3">
                                 <button type="button" onClick={() => setEditingCourse(null)} className="text-text-secondary hover:text-white">Cancel</button>
                                 <button type="submit" className="bg-primary text-white px-4 py-2 rounded-lg font-bold">Update</button>
