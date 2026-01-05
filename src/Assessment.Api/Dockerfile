@@ -8,6 +8,7 @@ COPY src/Assessment.Domain/Assessment.Domain.csproj src/Assessment.Domain/
 COPY src/Assessment.Application/Assessment.Application.csproj src/Assessment.Application/
 COPY src/Assessment.Infrastructure/Assessment.Infrastructure.csproj src/Assessment.Infrastructure/
 COPY src/Assessment.Api/Assessment.Api.csproj src/Assessment.Api/
+COPY tests/Assessment.Application.Tests/Assessment.Application.Tests.csproj tests/Assessment.Application.Tests/
 
 # Restore dependencies
 RUN dotnet restore

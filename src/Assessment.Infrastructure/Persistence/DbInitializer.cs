@@ -40,8 +40,11 @@ public static class DbInitializer
                 EmailConfirmed = true
             };
 
-            await userManager.CreateAsync(adminUser, adminPassword);
-            await userManager.AddToRoleAsync(adminUser, "Admin");
+            var result = await userManager.CreateAsync(adminUser, adminPassword);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(adminUser, "Admin");
+            }
         }
 
         // =========================
@@ -61,8 +64,11 @@ public static class DbInitializer
                 EmailConfirmed = true
             };
 
-            await userManager.CreateAsync(testUser, testPassword);
-            await userManager.AddToRoleAsync(testUser, "User");
+            var result = await userManager.CreateAsync(testUser, testPassword);
+            if (result.Succeeded)
+            {
+                await userManager.AddToRoleAsync(testUser, "User");
+            }
         }
     }
 }
