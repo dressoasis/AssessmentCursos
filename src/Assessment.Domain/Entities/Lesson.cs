@@ -9,6 +9,9 @@ public class Lesson
     public bool IsDeleted { get; private set; }
     public DateTime CreatedAt { get; private set; }
     public DateTime UpdatedAt { get; private set; }
+    
+    // Navigation property
+    public virtual Course Course { get; private set; } = null!;
 
     protected Lesson() { }
 

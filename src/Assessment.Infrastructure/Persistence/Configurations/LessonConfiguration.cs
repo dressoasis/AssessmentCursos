@@ -27,7 +27,7 @@ public class LessonConfiguration : IEntityTypeConfiguration<Lesson>
 
         builder.HasQueryFilter(l => !l.IsDeleted);
 
-        builder.HasOne<Course>()
+        builder.HasOne(l => l.Course)
             .WithMany(c => c.Lessons)
             .HasForeignKey(l => l.CourseId)
             .IsRequired();

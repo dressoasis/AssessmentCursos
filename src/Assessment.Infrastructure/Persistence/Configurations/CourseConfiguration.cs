@@ -29,7 +29,7 @@ public class CourseConfiguration : IEntityTypeConfiguration<Course>
         builder.HasQueryFilter(c => !c.IsDeleted);
 
         builder.HasMany(c => c.Lessons)
-            .WithOne()
+            .WithOne(l => l.Course)
             .HasForeignKey(l => l.CourseId)
             .OnDelete(DeleteBehavior.Cascade);
     }
