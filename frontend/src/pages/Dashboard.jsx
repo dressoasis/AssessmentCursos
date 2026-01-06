@@ -218,6 +218,8 @@ const Dashboard = () => {
     };
 
     const handleReorderLesson = async (lesson, direction) => {
+        if (!selectedCourse) return;
+
         const currentIndex = lessons.findIndex(l => l.id === lesson.id);
         if (currentIndex === -1) return;
 
@@ -231,7 +233,8 @@ const Dashboard = () => {
             await api.patch(`/courses/${selectedCourse.id}/lessons/${targetLesson.id}/reorder`, { newOrder: lesson.order });
             fetchLessons(selectedCourse.id);
         } catch (error) {
-            alert('Error reordering lessons');
+            console.error('Error reordering lesson:', error);
+            alert('Error reordering lesson');
         }
     };
 
