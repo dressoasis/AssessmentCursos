@@ -27,4 +27,10 @@ public class FakeCoursesRepository : ICoursesRepository
         }
         return Task.CompletedTask;
     }
+
+    public Task DeleteAsync(Course course)
+    {
+        Courses.Remove(course);
+        return Task.CompletedTask;
+    }
 }
