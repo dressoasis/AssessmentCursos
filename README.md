@@ -1,75 +1,75 @@
 # Assessment Cursos - Clean Architecture
 
-Sistema de gestión de cursos y lecciones desarrollado con Clean Architecture en .NET 8 y React.
+Course and lesson management system built with Clean Architecture using .NET 8 and React.
 
-## 🚀 Tecnologías
+## 🚀 Technologies
 
 ### Backend
-- **.NET 8** - Framework principal
-- **Entity Framework Core 8** - ORM con PostgreSQL
-- **ASP.NET Core Identity** - Autenticación de usuarios
-- **JWT Bearer** - Tokens de autenticación
-- **MediatR** - Patrón CQRS/Mediator
-- **FluentValidation** - Validaciones
-- **Swagger/OpenAPI** - Documentación de API
+- **.NET 8** - Main framework
+- **Entity Framework Core 8** - ORM with PostgreSQL
+- **ASP.NET Core Identity** - User authentication
+- **JWT Bearer** - Authentication tokens
+- **MediatR** - CQRS/Mediator pattern
+- **FluentValidation** - Validations
+- **Swagger/OpenAPI** - API documentation
 - **xUnit + Moq** - Testing
 
 ### Frontend
-- **React** - Librería de UI
+- **React** - UI library
 - **Vite** - Build tool
-- **TailwindCSS** - Framework de estilos
-- **Axios** - Cliente HTTP
-- **React Router** - Navegación
+- **TailwindCSS** - CSS framework
+- **Axios** - HTTP client
+- **React Router** - Navigation
 
-### Infraestructura
-- **Docker** - Contenedorización
-- **Docker Compose** - Orquestación
-- **Nginx** - Servidor web y proxy inverso
-- **PostgreSQL** - Base de datos
+### Infrastructure
+- **Docker** - Containerization
+- **Docker Compose** - Orchestration
+- **Nginx** - Web server and reverse proxy
+- **PostgreSQL** - Database
 
-## 🐳 Ejecución con Docker (Recomendado)
+## 🐳 Running with Docker (Recommended)
 
-La forma más sencilla de ejecutar la aplicación es utilizando Docker Compose. Esto levantará la base de datos, el backend y el frontend en contenedores aislados.
+The easiest way to run the application is using Docker Compose. This will start the database, backend, and frontend in isolated containers.
 
-### Prerrequisitos
-- Docker y Docker Compose instalados.
+### Prerequisites
+- Docker and Docker Compose installed
 
-### Instrucciones
-1. **Clonar el repositorio**
+### Instructions
+1. **Clone the repository**
    ```bash
    git clone https://github.com/dressoasis/AssessmentCursos.git
    cd AssessmentCursos
    ```
 
-2. **Iniciar los servicios**
+2. **Start the services**
    ```bash
    docker-compose up --build -d
    ```
 
-3. **Acceder a la aplicación**
+3. **Access the application**
    - **Frontend:** [http://localhost:5173](http://localhost:5173)
-   - **Backend API:** [http://localhost:5000/swagger](http://localhost:5000/swagger) (accesible internamente en el puerto 8080)
+   - **Backend API:** [http://localhost:5000/swagger](http://localhost:5000/swagger)
 
-   > **Nota:** La base de datos se inicializará automáticamente y se aplicarán las migraciones al inicio.
+   > **Note:** The database will initialize automatically and migrations will be applied on startup.
 
-4. **Detener los servicios**
+4. **Stop the services**
    ```bash
    docker-compose down
    ```
 
-## ⚙️ Ejecución Local (Desarrollo)
+## ⚙️ Local Development
 
-Si prefieres ejecutar los servicios manualmente en tu máquina:
+If you prefer to run the services manually on your machine:
 
-### Prerrequisitos
+### Prerequisites
 - .NET SDK 8.0
 - Node.js (v18+)
-- PostgreSQL corriendo localmente
+- PostgreSQL running locally
 
-### Pasos
+### Steps
 
-1. **Configurar la base de datos**
-   Editar `src/Assessment.Api/appsettings.json` con tu cadena de conexión local.
+1. **Configure the database**
+   Edit `src/Assessment.Api/appsettings.json` with your local connection string.
 
 2. **Backend**
    ```bash
@@ -77,7 +77,7 @@ Si prefieres ejecutar los servicios manualmente en tu máquina:
    dotnet restore
    dotnet run
    ```
-   La API estará en `http://localhost:5000`.
+   The API will be available at `http://localhost:5000`.
 
 3. **Frontend**
    ```bash
@@ -85,45 +85,47 @@ Si prefieres ejecutar los servicios manualmente en tu máquina:
    npm install
    npm run dev
    ```
-   El frontend estará en `http://localhost:5173`.
+   The frontend will be available at `http://localhost:5173`.
 
-## 📁 Estructura del Proyecto
+## 📁 Project Structure
 
 ```
 AssessmentCursos/
 │
 ├── src/
 │   ├── Assessment.Api/            ← Entry point, Controllers, Config
-│   ├── Assessment.Application/    ← Casos de uso, DTOs, Interfaces
-│   ├── Assessment.Domain/         ← Entidades, Enums, Reglas de negocio
-│   └── Assessment.Infrastructure/ ← Implementación de DB, Repositorios
+│   ├── Assessment.Application/    ← Use cases, DTOs, Interfaces
+│   ├── Assessment.Domain/         ← Entities, Enums, Business rules
+│   └── Assessment.Infrastructure/ ← DB implementation, Repositories
 │
-├── frontend/                      ← Aplicación React + Vite
+├── frontend/                      ← React + Vite application
 │
-├── tests/                         ← Pruebas unitarias e integración
+├── tests/                         ← Unit and integration tests
 │
-├── docker-compose.yml             ← Orquestación de contenedores
-└── README.md                      ← Documentación
+├── docker-compose.yml             ← Container orchestration
+└── README.md                      ← Documentation
 ```
 
-## 📚 Funcionalidades Principales
+## 📚 Main Features
 
-- **Gestión de Cursos:** Crear, editar, eliminar y listar cursos.
-- **Gestión de Lecciones:** Agregar lecciones a los cursos.
-- **Estados del Curso:**
-  - `Draft`: Estado inicial.
-  - `Published`: Solo posible si el curso tiene lecciones activas.
-- **Autenticación:** Registro y Login con JWT.
-- **Roles:** Sistema de roles (Admin/User).
+- **Dashboard:** Metrics overview with real-time statistics (total courses, lessons, published/draft counts)
+- **Course Management:** Create, edit, delete, and list courses
+- **Lesson Management:** Add and organize lessons within courses
+- **Global Lessons View:** View all lessons across all courses
+- **Course States:**
+  - `Draft`: Initial state
+  - `Published`: Only possible if the course has active lessons
+- **Authentication:** Registration and Login with JWT
+- **Role-Based Access:** Admin/User roles
 
 ## 🧪 Tests
 
-Para ejecutar las pruebas del backend:
+To run backend tests:
 
 ```bash
 dotnet test
 ```
 
-## 📄 Licencia
+## 📄 License
 
 MIT License
