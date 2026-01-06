@@ -1,6 +1,8 @@
 using Assessment.Application.DTOs.Courses;
 using Assessment.Application.DTOs.Lessons;
+using Assessment.Application.DTOs.Dashboard;
 using Assessment.Application.Interfaces;
+using Assessment.Domain.Enums;
 using Assessment.Infrastructure.Persistence;
 using Microsoft.EntityFrameworkCore;
 
@@ -73,5 +75,50 @@ public class CourseQueries : ICourseQueries
                 UpdatedAt = l.UpdatedAt
             })
             .ToListAsync();
+    }
+    public async Task<List<LessonWithCourseDto>> GetAllLessonsAsync()
+    {
+        return await _context.Lessons
+            .Include(l => l.Course)
+            .Where(l => !l.IsDeleted && !l.Course.IsDeleted)
+            .OrderByDescending(l => l.CreatedAt)
+            .Select(l => new LessonWithCourseDto
+            {
+                Id = l.Id,
+                CourseId = l.CourseId,
+                Title = l.Title,
+                Order = l.Order,
+                CreatedAt = l.CreatedAt,
+                UpdatedAt = l.UpdatedAt,
+                CourseTitle = l.Course.Title
+            })
+            .ToListAsync();
+    }
+
+    public async Task<DashboardMetricsDto> GetDashboardMetricsAsync()
+    {
+        var totalCourses = await _context.Courses
+            .Where(c => !c.IsDeleted)
+            .CountAsync();
+
+        var totalLessons = await _context.Lessons
+            .Where(l => !l.IsDeleted)
+            .CountAsync();
+
+        var publishedCourses = await _context.Courses
+            .Where(c => !c.IsDeleted && c.Status == CourseStatus.Published)
+            .CountAsync();
+
+        var draftCourses = await _context.Courses
+            .Where(c => !c.IsDeleted && c.Status == CourseStatus.Draft)
+            .CountAsync();
+
+        return new DashboardMetricsDto
+        {
+            TotalCourses = totalCourses,
+            TotalLessons = totalLessons,
+            PublishedCourses = publishedCourses,
+            DraftCourses = draftCourses
+        };
     }
 }
