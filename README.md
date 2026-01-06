@@ -110,8 +110,8 @@ AssessmentCursos/
 
 - **Dashboard:** Metrics overview with real-time statistics (total courses, lessons, published/draft counts)
 - **Course Management:** Create, edit, delete, and list courses
-- **Lesson Management:** Add and organize lessons within courses
-- **Global Lessons View:** View all lessons across all courses
+- **Lesson Management:** Add and organize lessons within courses with automatic shifting (reordering)
+- **Global Lessons View:** View all lessons across all courses with their parent course titles
 - **Course States:**
   - `Draft`: Initial state
   - `Published`: Only possible if the course has active lessons

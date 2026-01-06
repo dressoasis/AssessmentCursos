@@ -14,14 +14,38 @@ public class ReorderLessons
 
     public async Task ExecuteAsync(Guid courseId, Guid lessonId, int newOrder)
     {
-        var lessons = await _repository.GetByCourseIdAsync(courseId);
+        var lessons = (await _repository.GetByCourseIdAsync(courseId))
+            .OrderBy(l => l.Order)
+            .ToList();
 
-        if (lessons.Any(l => l.Order == newOrder && l.Id != lessonId))
-            throw new BusinessException("Duplicate lesson order detected");
+        var lessonToMove = lessons.FirstOrDefault(l => l.Id == lessonId);
+        if (lessonToMove == null) return;
 
-        var lesson = lessons.First(x => x.Id == lessonId);
-        lesson.ChangeOrder(newOrder);
+        int currentOrder = lessonToMove.Order;
+        if (currentOrder == newOrder) return;
 
-        await _repository.UpdateAsync(lesson);
+        if (newOrder < currentOrder)
+        {
+            // Moving up: Increment order of lessons between newOrder and currentOrder - 1
+            var affectedLessons = lessons.Where(l => l.Order >= newOrder && l.Order < currentOrder).ToList();
+            foreach (var l in affectedLessons)
+            {
+                l.ChangeOrder(l.Order + 1);
+                await _repository.UpdateAsync(l);
+            }
+        }
+        else
+        {
+            // Moving down: Decrement order of lessons between currentOrder + 1 and newOrder
+            var affectedLessons = lessons.Where(l => l.Order > currentOrder && l.Order <= newOrder).ToList();
+            foreach (var l in affectedLessons)
+            {
+                l.ChangeOrder(l.Order - 1);
+                await _repository.UpdateAsync(l);
+            }
+        }
+
+        lessonToMove.ChangeOrder(newOrder);
+        await _repository.UpdateAsync(lessonToMove);
     }
 }

@@ -229,8 +229,9 @@ const Dashboard = () => {
         const targetLesson = lessons[targetIndex];
 
         try {
-            await api.patch(`/courses/${selectedCourse.id}/lessons/${lesson.id}/reorder`, { newOrder: targetLesson.order });
-            await api.patch(`/courses/${selectedCourse.id}/lessons/${targetLesson.id}/reorder`, { newOrder: lesson.order });
+            await api.patch(`/courses/${selectedCourse.id}/lessons/${lesson.id}/reorder`, {
+                newOrder: targetLesson.order
+            });
             fetchLessons(selectedCourse.id);
         } catch (error) {
             console.error('Error reordering lesson:', error);
