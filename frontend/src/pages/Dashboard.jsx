@@ -4,14 +4,26 @@ import api from '../services/api';
 
 const Dashboard = () => {
     const { logout, user } = useAuth();
+    const [activeView, setActiveView] = useState('courses'); // 'dashboard', 'courses', 'lessons'
+
+    // Courses State
     const [courses, setCourses] = useState([]);
     const [loading, setLoading] = useState(true);
     const [search, setSearch] = useState('');
     const [status, setStatus] = useState('');
     const [page, setPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
     const [selectedCourse, setSelectedCourse] = useState(null);
-    const [lessons, setLessons] = useState([]);
+    const [lessons, setLessons] = useState([]); // Lessons for selected course
+
+    // Global Lessons State
+    const [globalLessons, setGlobalLessons] = useState([]);
+    const [loadingLessons, setLoadingLessons] = useState(false);
+
+    // Dashboard Metrics State
+    const [metrics, setMetrics] = useState(null);
+    const [loadingMetrics, setLoadingMetrics] = useState(false);
+
+    // Modals State
     const [showCreateCourseModal, setShowCreateCourseModal] = useState(false);
     const [newCourseTitle, setNewCourseTitle] = useState('');
     const [editingCourse, setEditingCourse] = useState(null);
@@ -34,22 +46,54 @@ const Dashboard = () => {
                     pageSize: 50
                 }
             });
-            // Backend returns a List<CourseSearchResultDto>, not a paginated object
             setCourses(response.data || []);
-            // setTotalPages(response.data.totalPages); // Pagination not yet implemented in backend response
         } catch (error) {
             console.error('Error fetching courses:', error);
-            setCourses([]); // Ensure courses is always an array on error
+            setCourses([]);
         } finally {
             setLoading(false);
         }
     };
 
-    useEffect(() => {
-        fetchCourses();
-    }, [page, status]); // Search handled manually
+    // Fetch Global Lessons
+    const fetchGlobalLessons = async () => {
+        setLoadingLessons(true);
+        try {
+            const response = await api.get('/lessons');
+            setGlobalLessons(response.data || []);
+        } catch (error) {
+            console.error('Error fetching global lessons:', error);
+            setGlobalLessons([]);
+        } finally {
+            setLoadingLessons(false);
+        }
+    };
 
-    // Fetch Lessons when a course is selected
+    // Fetch Dashboard Metrics
+    const fetchDashboardMetrics = async () => {
+        setLoadingMetrics(true);
+        try {
+            const response = await api.get('/dashboard/metrics');
+            setMetrics(response.data);
+        } catch (error) {
+            console.error('Error fetching dashboard metrics:', error);
+            setMetrics(null);
+        } finally {
+            setLoadingMetrics(false);
+        }
+    };
+
+    useEffect(() => {
+        if (activeView === 'courses') {
+            fetchCourses();
+        } else if (activeView === 'lessons') {
+            fetchGlobalLessons();
+        } else if (activeView === 'dashboard') {
+            fetchDashboardMetrics();
+        }
+    }, [activeView, search, status, page]);
+
+    // Fetch Lessons when a course is selected (in Courses view)
     useEffect(() => {
         if (selectedCourse) {
             fetchLessons(selectedCourse.id);
@@ -217,113 +261,258 @@ const Dashboard = () => {
 
             {/* Main Content Area */}
             <main className="flex-1 flex overflow-hidden">
-                {/* Sidebar / Filter Panel (Left) */}
+                {/* Sidebar (Left) */}
                 <aside className="w-80 flex flex-col border-r border-border-dark bg-background-dark/50 overflow-y-auto shrink-0 hidden lg:flex">
-                    <div className="p-5">
-                        <h3 className="text-lg font-bold mb-1">Filters</h3>
-                        <p className="text-text-secondary text-sm mb-6">Refine your course list view.</p>
-                        <div className="space-y-6">
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Search</label>
-                                <div className="relative">
-                                    <span className="material-symbols-outlined absolute left-3 top-2.5 text-text-secondary">search</span>
-                                    <input
-                                        className="w-full bg-surface-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                                        placeholder="Search by title..."
-                                        type="text"
-                                        value={search}
-                                        onChange={(e) => setSearch(e.target.value)}
-                                        onKeyDown={(e) => e.key === 'Enter' && fetchCourses()}
-                                    />
+                    {/* Navigation Menu */}
+                    <div className="p-5 border-b border-border-dark">
+                        <nav className="space-y-1">
+                            <button
+                                onClick={() => setActiveView('dashboard')}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeView === 'dashboard' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-white/5 hover:text-white'}`}
+                            >
+                                <span className="material-symbols-outlined text-[20px]">dashboard</span>
+                                Dashboard
+                            </button>
+                            <button
+                                onClick={() => setActiveView('courses')}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeView === 'courses' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-white/5 hover:text-white'}`}
+                            >
+                                <span className="material-symbols-outlined text-[20px]">library_books</span>
+                                Courses
+                            </button>
+                            <button
+                                onClick={() => setActiveView('lessons')}
+                                className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${activeView === 'lessons' ? 'bg-primary/10 text-primary' : 'text-text-secondary hover:bg-white/5 hover:text-white'}`}
+                            >
+                                <span className="material-symbols-outlined text-[20px]">menu_book</span>
+                                Lessons
+                            </button>
+                        </nav>
+                    </div>
+
+                    {/* Filters (Only for Courses view) */}
+                    {activeView === 'courses' && (
+                        <div className="p-5">
+                            <h3 className="text-lg font-bold mb-1">Filters</h3>
+                            <p className="text-text-secondary text-sm mb-6">Refine your course list view.</p>
+                            <div className="space-y-6">
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Search</label>
+                                    <div className="relative">
+                                        <span className="material-symbols-outlined absolute left-3 top-2.5 text-text-secondary">search</span>
+                                        <input
+                                            className="w-full bg-surface-dark border border-border-dark rounded-lg py-2.5 pl-10 pr-4 text-sm text-white placeholder-text-secondary focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                                            placeholder="Search by title..."
+                                            type="text"
+                                            value={search}
+                                            onChange={(e) => setSearch(e.target.value)}
+                                            onKeyDown={(e) => e.key === 'Enter' && fetchCourses()}
+                                        />
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Status</label>
+                                    <select
+                                        className="w-full bg-surface-dark border border-border-dark rounded-lg py-2.5 px-4 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
+                                        value={status}
+                                        onChange={(e) => setStatus(e.target.value)}
+                                    >
+                                        <option value="">All Statuses</option>
+                                        <option value="Published">Published</option>
+                                        <option value="Draft">Draft</option>
+                                    </select>
                                 </div>
                             </div>
-                            <div className="space-y-2">
-                                <label className="text-xs font-bold text-text-secondary uppercase tracking-wider">Status</label>
-                                <select
-                                    className="w-full bg-surface-dark border border-border-dark rounded-lg py-2.5 px-4 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary appearance-none cursor-pointer"
-                                    value={status}
-                                    onChange={(e) => setStatus(e.target.value)}
-                                >
-                                    <option value="">All Statuses</option>
-                                    <option value="Published">Published</option>
-                                    <option value="Draft">Draft</option>
-                                </select>
-                            </div>
                         </div>
-                    </div>
-                    <div className="mt-auto p-5 border-t border-border-dark">
-                        <button
-                            onClick={() => setShowCreateCourseModal(true)}
-                            className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg font-bold transition-all shadow-lg shadow-primary/20"
-                        >
-                            <span className="material-symbols-outlined">add</span>
-                            Create New Course
-                        </button>
-                    </div>
+                    )}
+
+                    {/* Action Button (Only for Courses view) */}
+                    {activeView === 'courses' && (
+                        <div className="mt-auto p-5 border-t border-border-dark">
+                            <button
+                                onClick={() => setShowCreateCourseModal(true)}
+                                className="w-full flex items-center justify-center gap-2 bg-primary hover:bg-primary/90 text-white py-3 px-4 rounded-lg font-bold transition-all shadow-lg shadow-primary/20"
+                            >
+                                <span className="material-symbols-outlined">add</span>
+                                Create New Course
+                            </button>
+                        </div>
+                    )}
                 </aside>
 
-                {/* Course List (Middle) */}
+                {/* Content Area */}
                 <section className="flex-1 flex flex-col min-w-0 bg-background-dark relative overflow-hidden">
-                    <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6 space-y-4">
-                        {courses.map(course => (
-                            <div
-                                key={course.id}
-                                onClick={() => setSelectedCourse(course)}
-                                className={`group relative rounded-xl border ${selectedCourse?.id === course.id ? 'border-primary bg-surface-dark/80 ring-1 ring-primary/20' : 'border-border-dark bg-surface-dark hover:border-primary/50'} p-5 shadow-lg transition-all cursor-pointer`}
-                            >
-                                {selectedCourse?.id === course.id && <div className="absolute -left-px top-0 bottom-0 w-1 bg-primary rounded-l-xl"></div>}
-                                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                                    <div className="flex-1 min-w-0">
-                                        <div className="flex items-center gap-3 mb-1">
-                                            <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${course.status === 'Published' ? 'bg-green-400/10 text-green-400 ring-green-400/20' : 'bg-yellow-400/10 text-yellow-400 ring-yellow-400/20'}`}>
-                                                {course.status}
-                                            </span>
-                                            <span className="text-xs text-text-secondary">ID: #{course.id.substring(0, 4)}</span>
+
+                    {/* DASHBOARD VIEW */}
+                    {activeView === 'dashboard' && (
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6">
+                            <div className="mb-6">
+                                <h2 className="text-2xl font-bold text-white mb-2">Dashboard</h2>
+                                <p className="text-text-secondary">Overview of your courses and lessons</p>
+                            </div>
+
+                            {loadingMetrics ? (
+                                <div className="flex items-center justify-center py-20">
+                                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+                                </div>
+                            ) : metrics ? (
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                                    {/* Total Courses Card */}
+                                    <div className="group bg-gradient-to-br from-blue-500/10 to-blue-600/5 border border-blue-500/30 rounded-2xl p-6 hover:border-blue-500/50 transition-all hover:shadow-lg hover:shadow-blue-500/20">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-blue-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                                                <span className="material-symbols-outlined text-3xl text-blue-400">school</span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-sm text-text-secondary mb-1">Total Courses</p>
+                                                <p className="text-3xl font-bold text-white">{metrics.totalCourses}</p>
+                                            </div>
                                         </div>
-                                        <h3 className={`text-lg font-bold truncate ${selectedCourse?.id === course.id ? 'text-white' : 'text-white group-hover:text-primary transition-colors'}`}>{course.title}</h3>
-                                        <p className="text-sm text-text-secondary truncate mt-1">{course.lessonsCount} Lessons</p>
                                     </div>
-                                    <div className="flex items-center gap-2 shrink-0">
-                                        <button
-                                            onClick={(e) => {
-                                                e.stopPropagation();
-                                                setEditingCourse(course);
-                                                setEditCourseTitle(course.title);
-                                                setEditCourseStatus(course.status);
-                                            }}
-                                            className="size-9 rounded-lg bg-surface-dark border border-border-dark hover:bg-primary hover:text-white hover:border-primary text-text-secondary flex items-center justify-center transition-all"
-                                            title="Edit Course"
-                                        >
-                                            <span className="material-symbols-outlined text-[20px]">edit</span>
-                                        </button>
-                                        <div className="relative group/dropdown">
-                                            <button className="size-9 rounded-lg bg-surface-dark border border-border-dark hover:border-gray-500 text-text-secondary flex items-center justify-center transition-all">
-                                                <span className="material-symbols-outlined text-[20px]">more_vert</span>
-                                            </button>
-                                            <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-border-dark bg-[#1e2736] shadow-xl opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all z-10 p-1">
-                                                {course.status === 'Published' ? (
-                                                    <button onClick={(e) => { e.stopPropagation(); handleUnpublishCourse(course.id); }} className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-text-secondary hover:bg-white/5 hover:text-white">
-                                                        <span className="material-symbols-outlined text-[18px]">unpublished</span> Unpublish
-                                                    </button>
-                                                ) : (
-                                                    <button onClick={(e) => { e.stopPropagation(); handlePublishCourse(course.id); }} className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-text-secondary hover:bg-white/5 hover:text-white">
-                                                        <span className="material-symbols-outlined text-[18px]">publish</span> Publish
-                                                    </button>
-                                                )}
-                                                <button onClick={(e) => { e.stopPropagation(); handleDeleteCourse(course.id); }} className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300">
-                                                    <span className="material-symbols-outlined text-[18px]">delete</span> Delete
-                                                </button>
+
+                                    {/* Total Lessons Card */}
+                                    <div className="group bg-gradient-to-br from-purple-500/10 to-purple-600/5 border border-purple-500/30 rounded-2xl p-6 hover:border-purple-500/50 transition-all hover:shadow-lg hover:shadow-purple-500/20">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-purple-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                                                <span className="material-symbols-outlined text-3xl text-purple-400">menu_book</span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-sm text-text-secondary mb-1">Total Lessons</p>
+                                                <p className="text-3xl font-bold text-white">{metrics.totalLessons}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Published Courses Card */}
+                                    <div className="group bg-gradient-to-br from-green-500/10 to-green-600/5 border border-green-500/30 rounded-2xl p-6 hover:border-green-500/50 transition-all hover:shadow-lg hover:shadow-green-500/20">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-green-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                                                <span className="material-symbols-outlined text-3xl text-green-400">check_circle</span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-sm text-text-secondary mb-1">Published</p>
+                                                <p className="text-3xl font-bold text-white">{metrics.publishedCourses}</p>
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    {/* Draft Courses Card */}
+                                    <div className="group bg-gradient-to-br from-amber-500/10 to-amber-600/5 border border-amber-500/30 rounded-2xl p-6 hover:border-amber-500/50 transition-all hover:shadow-lg hover:shadow-amber-500/20">
+                                        <div className="flex items-center gap-4">
+                                            <div className="p-3 bg-amber-500/20 rounded-xl group-hover:scale-110 transition-transform">
+                                                <span className="material-symbols-outlined text-3xl text-amber-400">draft</span>
+                                            </div>
+                                            <div className="flex-1">
+                                                <p className="text-sm text-text-secondary mb-1">Draft Courses</p>
+                                                <p className="text-3xl font-bold text-white">{metrics.draftCourses}</p>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
+                            ) : (
+                                <div className="text-center py-10 text-text-secondary">
+                                    <p>Failed to load metrics</p>
+                                </div>
+                            )}
+                        </div>
+                    )}
+
+                    {/* COURSES VIEW */}
+                    {activeView === 'courses' && (
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6 space-y-4">
+                            {courses.map(course => (
+                                <div
+                                    key={course.id}
+                                    onClick={() => setSelectedCourse(course)}
+                                    className={`group relative rounded-xl border ${selectedCourse?.id === course.id ? 'border-primary bg-surface-dark/80 ring-1 ring-primary/20' : 'border-border-dark bg-surface-dark hover:border-primary/50'} p-5 shadow-lg transition-all cursor-pointer`}
+                                >
+                                    {selectedCourse?.id === course.id && <div className="absolute -left-px top-0 bottom-0 w-1 bg-primary rounded-l-xl"></div>}
+                                    <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                        <div className="flex-1 min-w-0">
+                                            <div className="flex items-center gap-3 mb-1">
+                                                <span className={`inline-flex items-center rounded-md px-2 py-1 text-xs font-medium ring-1 ring-inset ${course.status === 'Published' ? 'bg-green-400/10 text-green-400 ring-green-400/20' : 'bg-yellow-400/10 text-yellow-400 ring-yellow-400/20'}`}>
+                                                    {course.status}
+                                                </span>
+                                                <span className="text-xs text-text-secondary">ID: #{course.id.substring(0, 4)}</span>
+                                            </div>
+                                            <h3 className={`text-lg font-bold truncate ${selectedCourse?.id === course.id ? 'text-white' : 'text-white group-hover:text-primary transition-colors'}`}>{course.title}</h3>
+                                            <p className="text-sm text-text-secondary truncate mt-1">{course.lessonsCount} Lessons</p>
+                                        </div>
+                                        <div className="flex items-center gap-2 shrink-0">
+                                            <button
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setEditingCourse(course);
+                                                    setEditCourseTitle(course.title);
+                                                    setEditCourseStatus(course.status);
+                                                }}
+                                                className="size-9 rounded-lg bg-surface-dark border border-border-dark hover:bg-primary hover:text-white hover:border-primary text-text-secondary flex items-center justify-center transition-all"
+                                                title="Edit Course"
+                                            >
+                                                <span className="material-symbols-outlined text-[20px]">edit</span>
+                                            </button>
+                                            <div className="relative group/dropdown">
+                                                <button className="size-9 rounded-lg bg-surface-dark border border-border-dark hover:border-gray-500 text-text-secondary flex items-center justify-center transition-all">
+                                                    <span className="material-symbols-outlined text-[20px]">more_vert</span>
+                                                </button>
+                                                <div className="absolute right-0 top-full mt-2 w-48 rounded-lg border border-border-dark bg-[#1e2736] shadow-xl opacity-0 invisible group-hover/dropdown:opacity-100 group-hover/dropdown:visible transition-all z-10 p-1">
+                                                    {course.status === 'Published' ? (
+                                                        <button onClick={(e) => { e.stopPropagation(); handleUnpublishCourse(course.id); }} className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-text-secondary hover:bg-white/5 hover:text-white">
+                                                            <span className="material-symbols-outlined text-[18px]">unpublished</span> Unpublish
+                                                        </button>
+                                                    ) : (
+                                                        <button onClick={(e) => { e.stopPropagation(); handlePublishCourse(course.id); }} className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-text-secondary hover:bg-white/5 hover:text-white">
+                                                            <span className="material-symbols-outlined text-[18px]">publish</span> Publish
+                                                        </button>
+                                                    )}
+                                                    <button onClick={(e) => { e.stopPropagation(); handleDeleteCourse(course.id); }} className="flex w-full items-center gap-2 rounded px-3 py-2 text-sm text-red-400 hover:bg-red-500/10 hover:text-red-300">
+                                                        <span className="material-symbols-outlined text-[18px]">delete</span> Delete
+                                                    </button>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            ))}
+                        </div>
+                    )}
+
+                    {/* LESSONS VIEW */}
+                    {activeView === 'lessons' && (
+                        <div className="flex-1 overflow-y-auto custom-scrollbar p-4 lg:p-6">
+                            <div className="space-y-3">
+                                {globalLessons.map(lesson => (
+                                    <div key={lesson.id} className="group flex items-center gap-4 p-4 rounded-xl bg-surface-dark border border-border-dark hover:border-primary/50 transition-all">
+                                        <div className="size-10 rounded-lg bg-primary/10 flex items-center justify-center text-primary shrink-0">
+                                            <span className="material-symbols-outlined">play_circle</span>
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <h4 className="text-base font-bold text-white truncate">{lesson.title}</h4>
+                                            <div className="flex items-center gap-2 mt-1">
+                                                <span className="text-xs text-text-secondary bg-white/5 px-2 py-0.5 rounded">
+                                                    {lesson.courseTitle}
+                                                </span>
+                                                <span className="text-xs text-text-secondary">•</span>
+                                                <span className="text-xs text-text-secondary">Order: {lesson.order}</span>
+                                            </div>
+                                        </div>
+                                        <div className="text-xs text-text-secondary">
+                                            {new Date(lesson.createdAt).toLocaleDateString()}
+                                        </div>
+                                    </div>
+                                ))}
+                                {globalLessons.length === 0 && !loadingLessons && (
+                                    <div className="text-center py-10 text-text-secondary">
+                                        <p>No lessons found.</p>
+                                    </div>
+                                )}
                             </div>
-                        ))}
-                    </div>
+                        </div>
+                    )}
                 </section>
 
-                {/* Lessons Panel (Right) */}
-                {selectedCourse && (
+                {/* Lessons Panel (Right) - Only visible in Courses view when a course is selected */}
+                {activeView === 'courses' && selectedCourse && (
                     <aside className="w-[440px] border-l border-border-dark bg-[#141b26] flex flex-col shrink-0 shadow-2xl z-10 transition-transform duration-300 absolute lg:relative right-0 h-full lg:translate-x-0 translate-x-full lg:flex">
                         <div className="p-6 border-b border-border-dark bg-[#141b26]">
                             <div className="flex items-center justify-between mb-2">
