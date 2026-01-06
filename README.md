@@ -1,90 +1,10 @@
 # Assessment Cursos - Clean Architecture
 
-Sistema de gestión de cursos y lecciones desarrollado con Clean Architecture en .NET 8.
-
-## 📁 Estructura del Proyecto
-
-```
-AssessmentCursos/
-│
-├── src/
-│   ├── Assessment.Api/            ← ASP.NET API (Controllers, JWT, Auth)
-│   │   ├── Controllers/
-│   │   │   ├── AuthController.cs
-│   │   │   ├── CoursesController.cs
-│   │   │   └── LessonsController.cs
-│   │   ├── Middleware/
-│   │   ├── Services/
-│   │   └── Program.cs
-│   │
-│   ├── Assessment.Application/    ← Casos de uso + reglas de negocio
-│   │   ├── Common/
-│   │   │   ├── Behaviors/
-│   │   │   ├── Exceptions/
-│   │   │   ├── Interfaces/
-│   │   │   ├── Mappings/
-│   │   │   └── Models/
-│   │   └── Features/
-│   │       ├── Courses/
-│   │       └── Lessons/
-│   │
-│   ├── Assessment.Domain/         ← Entidades + Enums (puras)
-│   │   ├── Entities/
-│   │   │   ├── BaseEntity.cs
-│   │   │   ├── Course.cs
-│   │   │   └── Lesson.cs
-│   │   └── Enums/
-│   │       └── CourseStatus.cs
-│   │
-│   └── Assessment.Infrastructure/ ← EF Core, Identity, Repositorios
-│       ├── Identity/
-│       ├── Persistence/
-│       │   └── Configurations/
-│       └── Repositories/
-│
-├── tests/
-│   └── Assessment.Application.Tests/
-│
-└── frontend/
-```
-
-## 📊 Modelo de Dominio
-
-### Entidades
-
-#### Course
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| Id | GUID | Identificador único |
-| Title | string | Título del curso |
-| Status | CourseStatus | Estado (Draft, Published) |
-| IsDeleted | bool | Soft delete flag |
-| CreatedAt | DateTime | Fecha de creación |
-| UpdatedAt | DateTime | Fecha de actualización |
-
-#### Lesson
-| Campo | Tipo | Descripción |
-|-------|------|-------------|
-| Id | GUID | Identificador único |
-| CourseId | GUID | FK al curso |
-| Title | string | Título de la lección |
-| Order | int | Orden de la lección |
-| IsDeleted | bool | Soft delete flag |
-| CreatedAt | DateTime | Fecha de creación |
-| UpdatedAt | DateTime | Fecha de actualización |
-
-### Enums
-
-#### CourseStatus
-- `Draft` (0) - Borrador
-- `Published` (1) - Publicado
-
-### Relaciones
-- Un **Course** puede tener muchas **Lessons**
-- Una **Lesson** pertenece a un solo **Course**
+Sistema de gestión de cursos y lecciones desarrollado con Clean Architecture en .NET 8 y React.
 
 ## 🚀 Tecnologías
 
+### Backend
 - **.NET 8** - Framework principal
 - **Entity Framework Core 8** - ORM con PostgreSQL
 - **ASP.NET Core Identity** - Autenticación de usuarios
@@ -94,78 +14,114 @@ AssessmentCursos/
 - **Swagger/OpenAPI** - Documentación de API
 - **xUnit + Moq** - Testing
 
-## ⚙️ Configuración
+### Frontend
+- **React** - Librería de UI
+- **Vite** - Build tool
+- **TailwindCSS** - Framework de estilos
+- **Axios** - Cliente HTTP
+- **React Router** - Navegación
+
+### Infraestructura
+- **Docker** - Contenedorización
+- **Docker Compose** - Orquestación
+- **Nginx** - Servidor web y proxy inverso
+- **PostgreSQL** - Base de datos
+
+## 🐳 Ejecución con Docker (Recomendado)
+
+La forma más sencilla de ejecutar la aplicación es utilizando Docker Compose. Esto levantará la base de datos, el backend y el frontend en contenedores aislados.
+
+### Prerrequisitos
+- Docker y Docker Compose instalados.
+
+### Instrucciones
+1. **Clonar el repositorio**
+   ```bash
+   git clone https://github.com/dressoasis/AssessmentCursos.git
+   cd AssessmentCursos
+   ```
+
+2. **Iniciar los servicios**
+   ```bash
+   docker-compose up --build -d
+   ```
+
+3. **Acceder a la aplicación**
+   - **Frontend:** [http://localhost:5173](http://localhost:5173)
+   - **Backend API:** [http://localhost:5000/swagger](http://localhost:5000/swagger) (accesible internamente en el puerto 8080)
+
+   > **Nota:** La base de datos se inicializará automáticamente y se aplicarán las migraciones al inicio.
+
+4. **Detener los servicios**
+   ```bash
+   docker-compose down
+   ```
+
+## ⚙️ Ejecución Local (Desarrollo)
+
+Si prefieres ejecutar los servicios manualmente en tu máquina:
+
+### Prerrequisitos
+- .NET SDK 8.0
+- Node.js (v18+)
+- PostgreSQL corriendo localmente
+
+### Pasos
 
 1. **Configurar la base de datos**
-   
-   Editar `src/Assessment.Api/appsettings.json`:
-   ```json
-   {
-     "ConnectionStrings": {
-       "DefaultConnection": "Host=localhost;Database=assessment_db;Username=postgres;Password=tu_password"
-     }
-   }
-   ```
+   Editar `src/Assessment.Api/appsettings.json` con tu cadena de conexión local.
 
-2. **Ejecutar migraciones**
+2. **Backend**
    ```bash
    cd src/Assessment.Api
-   dotnet ef migrations add InitialCreate --project ../Assessment.Infrastructure
-   dotnet ef database update
-   ```
-
-3. **Ejecutar la API (Backend)**
-   ```bash
-   cd src/Assessment.Api
+   dotnet restore
    dotnet run
    ```
-   La API estará disponible en `http://localhost:5000`.
+   La API estará en `http://localhost:5000`.
 
-4. **Ejecutar el Frontend**
+3. **Frontend**
    ```bash
    cd frontend
    npm install
    npm run dev
    ```
-   El frontend estará disponible en `http://localhost:5173`.
+   El frontend estará en `http://localhost:5173`.
 
-## 📚 API Endpoints
+## 📁 Estructura del Proyecto
 
-### Auth
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| POST | /api/auth/register | Registro de usuario | No |
-| POST | /api/auth/login | Inicio de sesión | No |
+```
+AssessmentCursos/
+│
+├── src/
+│   ├── Assessment.Api/            ← Entry point, Controllers, Config
+│   ├── Assessment.Application/    ← Casos de uso, DTOs, Interfaces
+│   ├── Assessment.Domain/         ← Entidades, Enums, Reglas de negocio
+│   └── Assessment.Infrastructure/ ← Implementación de DB, Repositorios
+│
+├── frontend/                      ← Aplicación React + Vite
+│
+├── tests/                         ← Pruebas unitarias e integración
+│
+├── docker-compose.yml             ← Orquestación de contenedores
+└── README.md                      ← Documentación
+```
 
-### Courses
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| GET | /api/courses | Listar courses (paginado, filtros) | No |
-| GET | /api/courses/{id} | Obtener course | No |
-| GET | /api/courses/{id}/summary | Obtener resumen de course | Sí |
-| POST | /api/courses | Crear course | Sí |
-| PUT | /api/courses/{id} | Actualizar course | Sí |
-| DELETE | /api/courses/{id} | Eliminar course | Sí |
-| PATCH | /api/courses/{id}/publish | Publicar course | Sí |
-| PATCH | /api/courses/{id}/unpublish | Despublicar course | Sí |
+## 📚 Funcionalidades Principales
 
-### Lessons
-| Método | Endpoint | Descripción | Auth |
-|--------|----------|-------------|------|
-| GET | /api/lessons/course/{courseId} | Listar lessons | No |
-| POST | /api/lessons | Crear lesson | Sí |
-| DELETE | /api/lessons/{id} | Eliminar lesson | Sí |
+- **Gestión de Cursos:** Crear, editar, eliminar y listar cursos.
+- **Gestión de Lecciones:** Agregar lecciones a los cursos.
+- **Estados del Curso:**
+  - `Draft`: Estado inicial.
+  - `Published`: Solo posible si el curso tiene lecciones activas.
+- **Autenticación:** Registro y Login con JWT.
+- **Roles:** Sistema de roles (Admin/User).
 
 ## 🧪 Tests
 
+Para ejecutar las pruebas del backend:
+
 ```bash
 dotnet test
-```
-
-## 🐳 Docker
-
-```bash
-docker-compose up -d
 ```
 
 ## 📄 Licencia
