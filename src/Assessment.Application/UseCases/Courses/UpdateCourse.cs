@@ -19,7 +19,15 @@ public class UpdateCourse
             throw new KeyNotFoundException($"Course with ID {id} not found.");
         }
 
-        course.Update(title, status);
+        try
+        {
+            course.Update(title, status);
+        }
+        catch (InvalidOperationException ex)
+        {
+            throw new Assessment.Application.Exceptions.BusinessException(ex.Message);
+        }
+        
         await _repository.UpdateAsync(course);
     }
 }

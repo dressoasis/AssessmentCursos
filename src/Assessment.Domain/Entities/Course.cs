@@ -30,7 +30,7 @@ public class Course
     {
         if (status == CourseStatus.Published && !_lessons.Any(l => !l.IsDeleted))
         {
-            throw new InvalidOperationException("Course must have at least one active lesson to be published.");
+            throw new InvalidOperationException("No se puede publicar un curso sin tener una o más lecciones.");
         }
 
         Title = title;
@@ -56,7 +56,7 @@ public class Course
             throw new InvalidOperationException("Course is already published.");
 
         if (!_lessons.Any(l => !l.IsDeleted))
-            throw new InvalidOperationException("Course must have at least one active lesson to be published.");
+            throw new InvalidOperationException("No se puede publicar un curso sin tener una o más lecciones.");
 
         Status = CourseStatus.Published;
         UpdatedAt = DateTime.UtcNow;

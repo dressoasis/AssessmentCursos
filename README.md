@@ -87,6 +87,31 @@ If you prefer to run the services manually on your machine:
    ```
    The frontend will be available at `http://localhost:5173`.
 
+### 🗄️ Database Migrations
+
+If you make changes to the domain models and need to update the database schema:
+
+1. **Add a new migration:**
+   ```bash
+   dotnet ef migrations add NameOfMigration --project src/Assessment.Infrastructure --startup-project src/Assessment.Api
+   ```
+
+2. **Apply migrations:**
+   ```bash
+   dotnet ef database update --project src/Assessment.Infrastructure --startup-project src/Assessment.Api
+   ```
+
+### 🔑 Default Credentials
+
+The system is seeded with the following users for testing:
+
+| Role | Email | Password |
+|------|-------|----------|
+| **Admin** | `admin@admin.com` | `Admin123` |
+| **User** | `test@test.com` | `Test123` |
+
+---
+
 ## 📁 Project Structure
 
 ```
