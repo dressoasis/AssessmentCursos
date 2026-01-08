@@ -1,21 +1,4 @@
 services:
-  postgres:
-    image: postgres:16-alpine
-    container_name: assessment-postgres
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: assessment_db
-    ports:
-      - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    healthcheck:
-      test: [ "CMD-SHELL", "pg_isready -U postgres" ]
-      interval: 5s
-      timeout: 5s
-      retries: 5
-
   api:
     build:
       context: .
@@ -23,12 +6,9 @@ services:
     container_name: assessment-api
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
-      - ConnectionStrings__DefaultConnection=Host=postgres;Database=assessment_db;Username=postgres;Password=postgres
+      - ConnectionStrings__DefaultConnection=Host=yamabiko.proxy.rlwy.net;Port=28713;Database=railway;Username=postgres;Password=DwhkqyOskMtwZXQclGjKcohPkIwHfVpj
     ports:
       - "5000:8080"
-    depends_on:
-      postgres:
-        condition: service_healthy
 
   frontend:
     build:
@@ -39,6 +19,3 @@ services:
       - "5173:80"
     depends_on:
       - api
-
-volumes:
-  postgres_data:
